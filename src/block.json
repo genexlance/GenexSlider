@@ -1,0 +1,70 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "genex/slider",
+    "version": "1.0.0",
+    "title": "Genex Slider",
+    "category": "media",
+    "icon": "images-alt2",
+    "description": "An advanced slider block with overlay capabilities.",
+    "keywords": [ "slider", "carousel", "gallery", "images" ],
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "slides": {
+            "type": "array",
+            "default": [],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "number" },
+                    "url": { "type": "string" },
+                    "alt": { "type": "string" },
+                    "link": {
+                        "type": "object",
+                        "default": {
+                            "url": "",
+                            "opensInNewTab": false,
+                            "nofollow": false
+                        }
+                    },
+                    "backgroundPosition": {
+                        "type": "string",
+                        "default": "center center"
+                    }
+                }
+            }
+        },
+        "transitionEffect": {
+            "type": "string",
+            "default": "fade"
+        },
+        "arrowStyle": {
+            "type": "string",
+            "default": "default"
+        },
+        "sliderHeight": {
+            "type": "number",
+            "default": 400
+        },
+        "autoplayEnabled": {
+            "type": "boolean",
+            "default": false
+        },
+        "autoplayDuration": {
+            "type": "number",
+            "default": 5
+        },
+        "showDots": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "textdomain": "genex-slider",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./index.css",
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js"
+} 

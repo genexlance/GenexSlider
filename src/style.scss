@@ -1,0 +1,254 @@
+/**
+ * Frontend Styles
+ */
+
+.genex-slider-container {
+    position: relative;
+    overflow: hidden; // Prevent content overflow during transitions
+    width: 100%;
+    // Add aspect ratio or default height if needed
+    // aspect-ratio: 16 / 9;
+
+    .genex-slides {
+        position: relative;
+        width: 100%;
+        height: 100%; // Ensure container has height for absolute children
+        min-height: inherit; // Inherit min-height from parent
+        // display: flex; // Keep for horizontal slide, override later
+    }
+
+    .genex-slide {
+        // Base styles - these might be overridden per effect
+        width: 100%;
+        height: 100%; // Ensure slide fills container for absolute positioning
+        flex-shrink: 0; // For horizontal slide
+        position: relative; // Default
+        overflow: hidden; // Clip content within slide if needed
+
+        // Default visibility (will be managed by JS)
+        opacity: 0;
+        visibility: hidden;
+
+        // Base background properties needed now we use divs
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-color: transparent; // Or a fallback color
+    }
+
+    // Basic Arrow Styling (will be enhanced by arrowStyle attribute)
+    .genex-slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        // padding: 10px 15px; // Adjust padding/size per style
+        width: 40px; // Base size
+        height: 40px; // Base size
+        cursor: pointer;
+        border-radius: 50%;
+        // font-size: 20px; // Remove if using SVG
+        line-height: 1;
+        display: flex; // Use flex to center SVG/content
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+
+        // Default style uses text content
+        &::before { 
+            content: none; // Remove default text if SVG is preferred base
+        }
+        
+        // Default Text Arrows (if no specific style matches)
+        &[data-arrow-style="default"], &:not([data-arrow-style]) {
+             &.genex-slider-prev::before { content: '<'; font-size: 20px; }
+             &.genex-slider-next::before { content: '>'; font-size: 20px; }
+             padding: 10px 15px; // Re-add padding for text
+             width: auto; // Auto width for text
+        }
+
+        // SVG base styles
+        svg {
+            width: 60%; // Relative size within button
+            height: 60%;
+            display: block;
+            fill: currentColor; // Use button color
+            stroke: currentColor; // Use button color
+        }
+
+        &.genex-slider-prev {
+            left: 15px;
+            // Basic arrow character (replace with icons/SVG later)
+            // &::before { content: '<'; }
+        }
+
+        &.genex-slider-next {
+            right: 15px;
+            // Basic arrow character (replace with icons/SVG later)
+            // &::before { content: '>'; }
+        }
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    }
+
+    // --- Arrow Style Variations --- 
+
+    // Square Solid
+    &[data-arrow-style="square-solid"] .genex-slider-nav {
+        border-radius: 0; // Make it square
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        width: 40px; // Ensure equal width/height
+        height: 40px;
+        &:hover {
+             background-color: rgba(0, 0, 0, 0.9);
+        }
+        svg { 
+            fill: white;
+        }
+        &.genex-slider-prev::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='white'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3Cpath d='M13.414 8.586L9.828 12l3.586 3.414 1.414-1.414L12.657 12l2.171-2.172-1.414-1.414z'/%3E%3C/svg%3E");
+        }
+         &.genex-slider-next::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='white'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3Cpath d='M10.586 15.414L14.172 12l-3.586-3.414-1.414 1.414L11.343 12l-2.171 2.172 1.414 1.414z'/%3E%3C/svg%3E");
+        }
+    }
+
+    // Chevron Large
+    &[data-arrow-style="chevron-large"] .genex-slider-nav {
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        width: 50px; // Larger hit area
+        height: 80px;
+        &:hover {
+             background-color: transparent;
+             color: white;
+        }
+        svg { 
+            width: 100%; // Use full button size
+            height: 100%;
+            fill: currentColor;
+        }
+         &.genex-slider-prev::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='currentColor'%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E");
+        }
+         &.genex-slider-next::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='currentColor'%3E%3Cpath d='M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z'/%3E%3C/svg%3E");
+        }
+    }
+
+    // Circle Solid
+    &[data-arrow-style="circle-solid"] .genex-slider-nav {
+        border-radius: 50%; // Ensure circle
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        width: 40px; // Ensure equal width/height for circle
+        height: 40px;
+        &:hover {
+             background-color: rgba(0, 0, 0, 0.9);
+        }
+        svg { 
+            fill: white;
+        }
+        &.genex-slider-prev::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='white'%3E%3Ccircle cx='12' cy='12' r='11' fill='rgba(0,0,0,0.6)'/%3E%3Cpath d='M13.414 8.586L9.828 12l3.586 3.414 1.414-1.414L12.657 12l2.171-2.172-1.414-1.414z'/%3E%3C/svg%3E");
+        }
+         &.genex-slider-next::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='white'%3E%3Ccircle cx='12' cy='12' r='11' fill='rgba(0,0,0,0.6)'/%3E%3Cpath d='M10.586 15.414L14.172 12l-3.586-3.414-1.414 1.414L11.343 12l-2.171 2.172 1.414 1.414z'/%3E%3C/svg%3E");
+        }
+    }
+
+    // Chevron Simple
+    &[data-arrow-style="chevron-simple"] .genex-slider-nav {
+        background-color: transparent;
+        color: rgba(0, 0, 0, 0.6);
+        width: 30px; 
+        height: 60px;
+        border: none;
+        &:hover {
+             background-color: transparent;
+             color: black;
+        }
+        svg { 
+            width: 100%; 
+            height: 100%;
+            stroke: currentColor;
+            stroke-width: 3;
+            fill: none;
+        }
+         &.genex-slider-prev::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+         &.genex-slider-next::before {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 6 15 12 9 18'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+    }
+
+    // --- Transition Effect Specific Styles --- 
+
+    // Fade & Blur: Absolute positioning for cross-fade
+    &[data-transition-effect="fade"],
+    &[data-transition-effect="blur"] {
+        .genex-slides {
+            // No flex needed
+        }
+        .genex-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            // Opacity/visibility managed by JS
+        }
+    }
+
+    // Horizontal Slide: Use Absolute Positioning & xPercent transform
+    &[data-transition-effect="slide-horizontal"] {
+        .genex-slides {
+            // Container remains default (likely block/relative)
+        }
+        .genex-slide {
+            // Inherit base styles like background-size etc.
+            position: absolute; // Ensure absolute positioning
+            top: 0;
+            left: 0;
+            width: 100%; // Ensure full size
+            height: 100%;
+            transition: none; // GSAP handles transform
+            // Opacity/visibility managed by JS
+        }
+    }
+
+    // --- Dots Navigation --- 
+    .genex-slider-dots {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+    }
+
+    .genex-slider-dot {
+        padding: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &.is-active {
+            background-color: white;
+        }
+
+        &:hover {
+             background-color: rgba(255, 255, 255, 0.8);
+        }
+    }
+} 
