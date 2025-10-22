@@ -29,6 +29,34 @@ function genex_slider_register_block() {
 }
 add_action( 'init', 'genex_slider_register_block' );
 
+// Function to handle the Genex Slider shortcode
+function gxslider_shortcode($atts) {
+    // Set default attributes (matching block.json defaults)
+    $atts = shortcode_atts(array(
+        'slides' => '[]', // JSON-encoded array of slides (e.g., from media library IDs or URLs)
+        'transition_effect' => 'fade',
+        'arrow_style' => 'default',
+        'slider_height' => 400,
+        'autoplay_enabled' => false,
+        'autoplay_duration' => 5,
+        'show_dots' => true,
+    ), $atts, 'gxslider');
+
+    // Enqueue assets for shortcode usage
+    wp_enqueue_script('gsap', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js', array(), '3.12.5', true);
+    wp_enqueue_script('genex-slider-frontend', plugin_dir_url(__FILE__) . 'build/view.js', array('gsap'), '1.0.0', true);
+    wp_enqueue_style('genex-slider-frontend-style', plugin_dir_url(__FILE__) . 'build/style-index.css', array(), '1.0.0');
+
+    // Render the shortcode HTML
+    ob_start();
+    echo '<!-- Genex Slider Shortcode -->';
+    echo '<div class="wp-block-genex-slider gxslider-shortcode" data-attributes="' . esc_attr(json_encode($atts)) . '">';
+    echo '<!-- Slider content will be populated by view.js -->';
+    echo '</div>';
+    return ob_get_clean();
+}
+add_shortcode('gxslider', 'gxslider_shortcode');
+
 // Function to enqueue GSAP from CDN for the frontend
 function genex_slider_enqueue_frontend_assets() {
     // Check if we are on the frontend and a genex-slider block exists

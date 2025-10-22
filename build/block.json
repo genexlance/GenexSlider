@@ -47,6 +47,12 @@
           "backgroundPosition": {
             "type": "string",
             "default": "center center"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
           }
         }
       }
@@ -58,10 +64,6 @@
     "arrowStyle": {
       "type": "string",
       "default": "default"
-    },
-    "sliderHeight": {
-      "type": "number",
-      "default": 400
     },
     "autoplayEnabled": {
       "type": "boolean",

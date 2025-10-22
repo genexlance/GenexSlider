@@ -18,20 +18,125 @@ document.addEventListener('DOMContentLoaded', () => {
         const autoplayEnabled = slider.dataset.autoplay === 'true';
         const autoplayDuration = (parseFloat(slider.dataset.autoplayDuration) || 5) * 1000; // In milliseconds
 
-        if (!slidesContainer || slides.length <= 1) {
-            // No slides or only one slide, hide nav if it exists
-            if (prevButton) prevButton.style.display = 'none';
-            if (nextButton) nextButton.style.display = 'none';
-            // If only one slide, ensure it's visible (especially for fade)
-            if (slides.length === 1) {
-                gsap.set(slides[0], { opacity: 1, visibility: 'visible' });
-            }
-            return; // No need for slider logic
+        if (!slidesContainer || slides.length === 0) {
+            return; // Nothing to do without slides
         }
+
+        const parsePositiveFloat = (value) => {
+            const parsed = parseFloat(value);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+        };
+
+        const initialWidth = parsePositiveFloat(slider.dataset.initialWidth);
+        const initialHeight = parsePositiveFloat(slider.dataset.initialHeight);
 
         let currentSlideIndex = 0;
         const totalSlides = slides.length;
         let autoplayInterval = null; // Variable to hold the interval ID
+
+        const getSlideDimensions = (slide) => {
+            if (!slide) {
+                return null;
+            }
+
+            const widthDataset = parsePositiveFloat(slide.dataset.imageWidth);
+            const heightDataset = parsePositiveFloat(slide.dataset.imageHeight);
+            if (widthDataset && heightDataset) {
+                return { width: widthDataset, height: heightDataset };
+            }
+
+            const img = slide.querySelector('.genex-slide-image');
+            if (!img) {
+                return null;
+            }
+
+            const attrWidth = parsePositiveFloat(img.getAttribute('width'));
+            const attrHeight = parsePositiveFloat(img.getAttribute('height'));
+            const naturalWidth = img.naturalWidth || attrWidth;
+            const naturalHeight = img.naturalHeight || attrHeight;
+
+            if (naturalWidth && naturalHeight) {
+                slide.dataset.imageWidth = naturalWidth;
+                slide.dataset.imageHeight = naturalHeight;
+                return { width: naturalWidth, height: naturalHeight };
+            }
+
+            return null;
+        };
+
+        const updateSliderRatioFromSlide = (slide) => {
+            const dims = getSlideDimensions(slide);
+            if (!dims || !dims.width || !dims.height) {
+                return;
+            }
+            const ratio = dims.height / dims.width;
+            if (!ratio || !Number.isFinite(ratio)) {
+                return;
+            }
+            slider.style.setProperty('--genex-slider-ratio', ratio);
+        };
+
+        const ensureSlideDimensions = (slide, immediate = false) => {
+            if (!slide) {
+                return;
+            }
+
+            const dims = getSlideDimensions(slide);
+            if (dims && immediate) {
+                updateSliderRatioFromSlide(slide);
+                return;
+            }
+            if (dims) {
+                return;
+            }
+
+            const img = slide.querySelector('.genex-slide-image');
+            if (!img) {
+                return;
+            }
+
+            if (img.complete) {
+                if (img.naturalWidth && img.naturalHeight) {
+                    slide.dataset.imageWidth = img.naturalWidth;
+                    slide.dataset.imageHeight = img.naturalHeight;
+                    if (immediate) {
+                        updateSliderRatioFromSlide(slide);
+                    }
+                }
+                return;
+            }
+
+            img.addEventListener('load', () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    slide.dataset.imageWidth = img.naturalWidth;
+                    slide.dataset.imageHeight = img.naturalHeight;
+                    const slideIdx = parseInt(slide.dataset.slideIndex, 10);
+                    if (slideIdx === currentSlideIndex) {
+                        updateSliderRatioFromSlide(slide);
+                    }
+                }
+            }, { once: true });
+        };
+
+        if (initialWidth && initialHeight) {
+            const ratio = initialHeight / initialWidth;
+            if (ratio && Number.isFinite(ratio)) {
+                slider.style.setProperty('--genex-slider-ratio', ratio);
+            }
+        }
+
+        slides.forEach((slide, index) => {
+            ensureSlideDimensions(slide, index === currentSlideIndex);
+        });
+
+        if (slides.length === 1) {
+            if (prevButton) prevButton.style.display = 'none';
+            if (nextButton) nextButton.style.display = 'none';
+            const singleSlide = slides[0];
+            gsap.set(singleSlide, { opacity: 1, visibility: 'visible' });
+            ensureSlideDimensions(singleSlide, true);
+            return;
+        }
 
         // --- Initialization based on effect ---
         function initializeSlider() {
@@ -61,6 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 gsap.set(slides[currentSlideIndex], { opacity: 1, visibility: 'visible' });
             }
 
+            ensureSlideDimensions(slides[currentSlideIndex], true);
+
             // Start autoplay if enabled
             if (autoplayEnabled) {
                 startAutoplay();
@@ -84,8 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Handle wrapping for index itself
             const wrappedIndex = (index + totalSlides) % totalSlides;
             if (wrappedIndex === currentSlideIndex) return; // Already handled index check, but safe
-
-            console.log(`Transition: ${transitionEffect}, From ${currentSlideIndex} to ${wrappedIndex}, Direction: ${direction}`);
 
             switch (transitionEffect) {
                 case 'slide-horizontal':
@@ -144,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             currentSlideIndex = wrappedIndex; // Use the wrapped index
+            ensureSlideDimensions(slides[currentSlideIndex], true);
             updateNavState();
 
             // Restart autoplay if it was interrupted by manual navigation

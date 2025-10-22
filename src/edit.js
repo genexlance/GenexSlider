@@ -3,7 +3,7 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, MediaUpload, MediaUploadCheck, InspectorControls, URLInputButton } from '@wordpress/block-editor';
-import { Button, PanelBody, SelectControl, Placeholder, RangeControl, ToggleControl, __experimentalNumberControl as NumberControl, BaseControl, Tooltip } from '@wordpress/components';
+import { Button, PanelBody, SelectControl, Placeholder, ToggleControl, __experimentalNumberControl as NumberControl, BaseControl } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 
 /**
@@ -61,21 +61,45 @@ export default function Edit({ attributes, setAttributes }) {
         slides = [], 
         transitionEffect, 
         arrowStyle, 
-        sliderHeight, 
         autoplayEnabled, 
         autoplayDuration,
         showDots
     } = attributes;
     const [ currentSlideIndex, setCurrentSlideIndex ] = useState(0);
 
+    const extractMediaDimension = (mediaItem, key) => {
+        if (!mediaItem) {
+            return null;
+        }
+        if (typeof mediaItem[key] === 'number') {
+            return mediaItem[key];
+        }
+        const mediaDetails = mediaItem.media_details || mediaItem.mediaDetails;
+        if (mediaDetails && typeof mediaDetails[key] === 'number') {
+            return mediaDetails[key];
+        }
+        const fullSize = mediaDetails?.sizes?.full;
+        if (fullSize && typeof fullSize[key] === 'number') {
+            return fullSize[key];
+        }
+        return null;
+    };
+
     const onSelectMedia = (media) => {
-        const newSlides = media.map((img) => ({
-            id: img.id,
-            url: img.url,
-            alt: img.alt,
-            link: { url: '', opensInNewTab: false, nofollow: false },
-            backgroundPosition: 'center center'
-        }));
+        const newSlides = media.map((img) => {
+            const width = extractMediaDimension(img, 'width');
+            const height = extractMediaDimension(img, 'height');
+
+            return {
+                id: img.id,
+                url: img.url,
+                alt: img.alt,
+                link: { url: '', opensInNewTab: false, nofollow: false },
+                backgroundPosition: 'center center',
+                width,
+                height
+            };
+        });
         setAttributes({ slides: [...slides, ...newSlides] });
         if (slides.length === 0) {
             setCurrentSlideIndex(0);
@@ -115,13 +139,8 @@ export default function Edit({ attributes, setAttributes }) {
         setAttributes( { slides: newSlides } );
     };
 
-    // Use style attribute for dynamic height in the editor
-    const editorBlockStyles = { 
-        minHeight: `${sliderHeight}px` 
-    };
-
     return (
-        <div {...blockProps} style={editorBlockStyles}>
+        <div {...blockProps}>
             <InspectorControls>
                 <PanelBody title={__('Slider Settings', 'genex-slider')}>
                     <SelectControl
@@ -156,15 +175,6 @@ export default function Edit({ attributes, setAttributes }) {
                             ))}
                         </div>
                     </BaseControl>
-
-                    <RangeControl
-                        label={__('Slider Height (px)', 'genex-slider')}
-                        value={sliderHeight}
-                        onChange={(value) => setAttributes({ sliderHeight: value })}
-                        min={100}
-                        max={1200}
-                        step={10}
-                    />
 
                     <ToggleControl
                         label={__('Enable Autoplay', 'genex-slider')}

@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
+import { useBlockProps } from '@wordpress/block-editor';
 
 /**
  * The save function defines the way in which the different attributes should
@@ -16,12 +16,11 @@ import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
  */
 export default function save({ attributes }) {
     const blockProps = useBlockProps.save();
-    const { 
-        slides = [], 
-        transitionEffect, 
-        arrowStyle, 
-        sliderHeight, 
-        autoplayEnabled, 
+    const {
+        slides = [],
+        transitionEffect,
+        arrowStyle,
+        autoplayEnabled,
         autoplayDuration,
         showDots
     } = attributes;
@@ -31,19 +30,28 @@ export default function save({ attributes }) {
         return null; // Or return <div {...blockProps}></div>; if a wrapper is always needed
     }
 
-    // Apply dynamic height style
-    const blockStyles = { 
-        minHeight: sliderHeight ? `${sliderHeight}px` : undefined 
-    };
+    const firstSlideWithDimensions = slides.find((slide) => slide?.width && slide?.height);
+    const containerStyles = {};
+
+    if (firstSlideWithDimensions?.width && firstSlideWithDimensions?.height) {
+        const ratio = firstSlideWithDimensions.height / firstSlideWithDimensions.width;
+        if (ratio && Number.isFinite(ratio)) {
+            containerStyles['--genex-slider-ratio'] = ratio;
+        }
+    }
+
+    const combinedStyles = { ...(blockProps?.style || {}), ...containerStyles };
 
     return (
         <div 
             {...blockProps} 
-            style={blockStyles} 
+            style={Object.keys(combinedStyles).length ? combinedStyles : undefined}
             data-transition-effect={transitionEffect}
             data-arrow-style={arrowStyle}
             data-autoplay={autoplayEnabled ? 'true' : 'false'}
             data-autoplay-duration={autoplayDuration}
+            data-initial-width={firstSlideWithDimensions?.width || undefined}
+            data-initial-height={firstSlideWithDimensions?.height || undefined}
             // Add a class to identify the block for frontend JS
             className={`${blockProps.className || ''} genex-slider-container`}
         >
@@ -58,33 +66,42 @@ export default function save({ attributes }) {
                         rel.push('nofollow');
                     }
 
-                    const slideInner = (
+                    const imageElement = slide.url ? (
+                        <img
+                            className="genex-slide-image"
+                            src={slide.url}
+                            alt={slide.alt || ''}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                            decoding="async"
+                            width={slide.width || undefined}
+                            height={slide.height || undefined}
+                            style={{ objectPosition: slide.backgroundPosition || 'center center' }}
+                        />
+                    ) : null;
+
+                    const slideContent = hasLink ? (
+                        <a 
+                            href={slide.link.url}
+                            target={slide.link.opensInNewTab ? '_blank' : undefined}
+                            rel={rel.length > 0 ? rel.join(' ') : undefined}
+                            className="genex-slide-link-wrapper"
+                        >
+                            {imageElement}
+                        </a>
+                    ) : (
+                        imageElement
+                    );
+
+                    return (
                         <div
                             key={slide.id || index} // Key might need to be on wrapper if hasLink
                             className="genex-slide"
                             data-slide-index={index}
-                            style={{ 
-                                backgroundImage: `url(${slide.url})`,
-                                backgroundPosition: slide.backgroundPosition || 'center center'
-                            }}
+                            data-image-width={slide?.width || undefined}
+                            data-image-height={slide?.height || undefined}
                         >
-                            {/* Empty div */} 
+                            {slideContent}
                         </div>
-                    );
-
-                    return hasLink ? (
-                        <a 
-                            key={`link-${slide.id || index}`}
-                            href={slide.link.url}
-                            target={slide.link.opensInNewTab ? '_blank' : undefined}
-                            rel={rel.length > 0 ? rel.join(' ') : undefined}
-                            className="genex-slide-link-wrapper" // Add class for potential styling
-                            style={{ display: 'block', width: '100%', height: '100%' }} // Ensure link wrapper fills area
-                        >
-                            {slideInner}
-                        </a>
-                    ) : (
-                        slideInner
                     );
                 })}
             </div>
